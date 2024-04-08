@@ -1,5 +1,6 @@
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.SideEffect
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.painter.BitmapPainter
 import androidx.compose.ui.graphics.toAwtImage
@@ -8,17 +9,40 @@ import androidx.compose.ui.res.loadImageBitmap
 import androidx.compose.ui.res.useResource
 import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.window.FrameWindowScope
+import androidx.compose.ui.window.Notification
 import androidx.compose.ui.window.Window
 import androidx.compose.ui.window.WindowPlacement
 import androidx.compose.ui.window.application
+import androidx.compose.ui.window.rememberNotification
+import androidx.compose.ui.window.rememberTrayState
 import androidx.compose.ui.window.rememberWindowState
+import com.joelkanyi.focusbloom.utils.Sound
 import di.startKoinApp
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 import navigation.SharedNavigatedApp
+import java.awt.AWTException
+import java.awt.EventQueue
+import java.awt.Image
+import java.awt.MenuItem
+import java.awt.PopupMenu
+import java.awt.SystemTray
+import java.awt.Toolkit
+import java.awt.TrayIcon
+import java.awt.event.ActionEvent
+import java.awt.event.ActionListener
+import java.io.File
+import java.io.FileOutputStream
+import java.io.IOException
+import java.io.InputStream
+import java.net.URI
+import javax.swing.ImageIcon
+import kotlin.system.exitProcess
 
 fun main() {
     startKoinApp()
     application {
-        val state = rememberWindowState(WindowPlacement.Maximized)
+        val state = rememberWindowState(WindowPlacement.Floating)
         Window(
             title = "Chirrio Messenger",
             onCloseRequest = ::exitApplication,
@@ -26,10 +50,233 @@ fun main() {
         ) {
             SetAppIcon()
             SharedNavigatedApp()
+            showNotification3 {
+                createTrayIcon {}
+                state.placement = WindowPlacement.Maximized
+            }
         }
     }
 }
 
+fun loadFileFromInputStream(inputStream: InputStream): File = copyInputStreamToFile(inputStream)
+
+
+fun copyInputStreamToFile(input: InputStream): File {
+    try {
+        val file = File("")
+        FileOutputStream(file).use { output -> input.transferTo(output) }
+        return file
+    } catch (ioException: IOException) {
+        ioException.printStackTrace()
+    }
+    return File("")
+}
+
+fun inputStreamToUri(inputStream: InputStream): URI? {
+    return try {
+        val tempFile = createTempFile()
+        tempFile.deleteOnExit()
+        tempFile.outputStream().use { outputStream ->
+            inputStream.copyTo(outputStream)
+        }
+        URI.create(tempFile.toURI().toString())
+    } catch (e: Exception) {
+        e.printStackTrace()
+        null
+    } finally {
+        inputStream.close()
+    }
+}
+
+fun showNotification(title: String, message: String, onClicked: () -> Unit) {
+    if (SystemTray.isSupported()) {
+        val tray = SystemTray.getSystemTray()
+        val image = ImageIcon("jetchat_icon.png").image
+        val trayIcon = TrayIcon(image, "Tray Icon")
+        trayIcon.toolTip = "Your Application"
+
+        val popup = PopupMenu()
+
+        // Add a menu item
+        val menuItem = MenuItem("accept")
+        menuItem.addActionListener {
+            onClicked()
+        }
+
+        popup.add(menuItem)
+
+        trayIcon.popupMenu = popup
+
+        tray.add(trayIcon)
+        trayIcon.displayMessage(title, message, TrayIcon.MessageType.INFO)
+
+    }
+}
+
+fun showNotification2(title: String, message: String, onClicked: () -> Unit) {
+    if (SystemTray.isSupported()) {
+        val popup = PopupMenu()
+
+        val image = ImageIcon("jetchat_icon.png").image
+        val trayIcon = TrayIcon(image, "Tray Icon")
+
+        val tray = SystemTray.getSystemTray()
+
+        // Add a menu item
+        val menuItem1 = MenuItem("Accept")
+        val menuItem2 = MenuItem("Reject")
+
+        popup.add(menuItem1)
+        popup.addSeparator()
+        popup.add(menuItem2)
+
+        trayIcon.popupMenu = popup
+
+        menuItem1.addActionListener {
+            onClicked()
+        }
+        menuItem2.addActionListener {
+            onClicked()
+        }
+        trayIcon.addActionListener {
+            onClicked()
+        }
+
+        trayIcon.addActionListener {
+            onClicked()
+        }
+        trayIcon.displayMessage(
+            "Calling From Adel",
+            "You Want to Answer?",
+            TrayIcon.MessageType.NONE
+        )
+        trayIcon.addActionListener {
+            onClicked()
+        }
+        tray.add(trayIcon)
+    }
+}
+
+@Composable
+fun showNotification3(onClicked: () -> Unit) {
+    val imageLoadingScope = rememberCoroutineScope()
+
+    imageLoadingScope.launch {
+//        val trayIcon = TrayIcon(BufferedImage(1, 1, BufferedImage.TYPE_INT_RGB))
+//        SystemTray.getSystemTray().add(trayIcon)
+        delay(5000)
+        onClicked()
+
+//        try {
+////            NotificationsManager().showNotification("hello", "adel")
+//
+////            val audioInputStream = AudioSystem.getAudioInputStream(
+////                Thread.currentThread().contextClassLoader.getResource("ring.wav")
+////            )
+////            val clip = AudioSystem.getClip()
+////            clip.open(audioInputStream)
+////            clip.start()
+//        } catch (ex: Exception) {
+//            println("Error playing sound: ${ex.message}")
+//        }
+////        trayIcon.addActionListener { }
+////        trayIcon.displayMessage(
+////            "Calling From Adel",
+////            "You Want to Answer?",
+////            TrayIcon.MessageType.INFO
+////        )
+        delay(20000)
+    }
+}
+
+@Composable
+fun Notification() {
+    val imageLoadingScope = rememberCoroutineScope()
+
+    val trayState = rememberTrayState()
+    val notification =
+        rememberNotification("Notification", "Message from MyApp!", Notification.Type.Info)
+
+    imageLoadingScope.launch {
+        delay((1000..3000).random().toLong())
+        trayState.sendNotification(notification)
+    }
+}
+
+private fun createTrayIcon(onClicked: () -> Unit) {
+
+    val popup = PopupMenu()
+    val image = ImageIcon("jetchat_icon.png").image
+
+    val trayIcon = TrayIcon(image)
+    trayIcon.addActionListener { onClicked() }
+
+    val tray = SystemTray.getSystemTray()
+    val openItem = MenuItem("open")
+    openItem.addActionListener(
+        ShowMessageListener(
+            trayIcon,
+            "Holy Fuck",
+            "Warning",
+            TrayIcon.MessageType.WARNING
+        ) {
+            onClicked()
+        })
+    val exitItem = MenuItem("close")
+
+//    openItem.addActionListener {
+//        trayIcon.displayMessage(
+//            "Calling From Adel",
+//            "You Want to Answer?",
+//            TrayIcon.MessageType.INFO
+//        )
+//    }
+    exitItem.addActionListener {
+        tray.remove(trayIcon)
+        exitProcess(0)
+    }
+    popup.add(openItem)
+    popup.addSeparator()
+    popup.add(exitItem)
+
+    trayIcon.popupMenu = popup
+
+    try {
+        tray.add(trayIcon)
+        trayIcon.addActionListener(object : ActionListener {
+            override fun actionPerformed(p0: ActionEvent?) {
+                p0?.actionCommand.toString()
+
+                trayIcon.displayMessage(
+                    "Calling From Adel",
+                    "You Want to Fuck?",
+                    TrayIcon.MessageType.INFO
+                )
+            }
+        })
+        trayIcon.displayMessage(
+            "Calling From Adel",
+            "You Want to Answer?",
+            TrayIcon.MessageType.INFO
+        )
+        Sound.playSound()
+    } catch (e: AWTException) {
+    }
+}
+
+private class ShowMessageListener internal constructor(
+    private val trayIcon: TrayIcon,
+    private val title: String,
+    private val message: String,
+    private val messageType: TrayIcon.MessageType,
+    onClicked: () -> Unit
+) :
+    ActionListener {
+    override fun actionPerformed(e: ActionEvent) {
+        trayIcon.addActionListener { println("Message Clicked") }
+        trayIcon.displayMessage(title, message, messageType)
+    }
+}
 
 @Composable
 fun FrameWindowScope.SetAppIcon() {

@@ -1,3 +1,8 @@
+buildscript {
+    dependencies {
+        classpath("com.android.tools.build:gradle:8.0.2")
+    }
+}
 plugins {
     // this is necessary to avoid the plugins to be loaded multiple times
     // in each subproject's classloader
