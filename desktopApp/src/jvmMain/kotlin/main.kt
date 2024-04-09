@@ -23,8 +23,12 @@ import kotlinx.coroutines.launch
 import navigation.SharedNavigatedApp
 import java.awt.AWTException
 import java.awt.BorderLayout
+import java.awt.Color
+import java.awt.Graphics
+import java.awt.Graphics2D
 import java.awt.MenuItem
 import java.awt.PopupMenu
+import java.awt.RenderingHints
 import java.awt.SystemTray
 import java.awt.TrayIcon
 import java.awt.event.ActionEvent
@@ -41,7 +45,9 @@ import javax.swing.JLabel
 import javax.swing.JPanel
 import javax.swing.SwingConstants
 import javax.swing.SwingUtilities
+import javax.swing.UIManager
 import kotlin.system.exitProcess
+
 
 fun main() {
     startKoinApp()
@@ -293,13 +299,33 @@ class NotificationWindow : JFrame() {
         title = "Notification"
         setSize(300, 150)
         defaultCloseOperation = DISPOSE_ON_CLOSE
+        isUndecorated = true // Remove window decorations
+
+        // Create a rounded border panel
+        val panel: JPanel = object : JPanel(BorderLayout()) {
+            override fun paintComponent(g: Graphics) {
+                super.paintComponent(g)
+                val radius = 10
+                val width = width
+                val height = height
+                val graphics = g as Graphics2D
+                graphics.setRenderingHint(
+                    RenderingHints.KEY_ANTIALIASING,
+                    RenderingHints.VALUE_ANTIALIAS_ON
+                )
+                graphics.color = background
+                graphics.fillRoundRect(0, 0, width - 1, height - 1, radius, radius)
+                graphics.color = foreground
+                graphics.drawRoundRect(0, 0, width - 1, height - 1, radius, radius)
+            }
+        }
+        panel.background = Color(240, 240, 240) // Set background color
         val label = JLabel("This is a notification message.")
         label.horizontalAlignment = SwingConstants.CENTER
         val button = JButton("OK")
         button.addActionListener {
             dispose() // Close the notification window when the button is clicked
         }
-        val panel = JPanel(BorderLayout())
         panel.add(label, BorderLayout.CENTER)
         panel.add(button, BorderLayout.SOUTH)
         contentPane.add(panel)
@@ -311,7 +337,14 @@ class NotificationWindow : JFrame() {
     companion object {
         @JvmStatic
         fun main(args: Array<String>) {
-            SwingUtilities.invokeLater {
+            SwingUtilities.invokeLater { // Set Nimbus look and feel for modern UI
+                try {
+                    UIManager.setLookAndFeel("javax.swing.plaf.nimbus.NimbusLookAndFeel")
+                } catch (e: java.lang.Exception) {
+                    e.printStackTrace()
+                }
+
+                // Instantiate and display the NotificationWindow
                 val notificationWindow = NotificationWindow()
                 notificationWindow.isVisible = true
             }
