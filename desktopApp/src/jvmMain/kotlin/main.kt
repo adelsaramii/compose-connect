@@ -26,6 +26,7 @@ import java.awt.BorderLayout
 import java.awt.Color
 import java.awt.Graphics
 import java.awt.Graphics2D
+import java.awt.GridLayout
 import java.awt.MenuItem
 import java.awt.PopupMenu
 import java.awt.RenderingHints
@@ -64,7 +65,7 @@ fun main() {
                 createTrayIcon {}
                 state.placement = WindowPlacement.Maximized
             }*/
-            val notificationWindow = NotificationWindow()
+            val notificationWindow = NotificationWindow("Calling from Adel" , "do you want to answer?")
 
             // Display the notification window
 
@@ -294,9 +295,10 @@ private class ShowMessageListener internal constructor(
     }
 }
 
-class NotificationWindow : JFrame() {
+class NotificationWindow(title: String?, description: String?) :
+    JFrame() {
     init {
-        title = "Notification"
+        setTitle("Incoming Call")
         setSize(300, 150)
         defaultCloseOperation = DISPOSE_ON_CLOSE
         isUndecorated = true // Remove window decorations
@@ -320,14 +322,26 @@ class NotificationWindow : JFrame() {
             }
         }
         panel.background = Color(240, 240, 240) // Set background color
-        val label = JLabel("This is a notification message.")
-        label.horizontalAlignment = SwingConstants.CENTER
-        val button = JButton("OK")
-        button.addActionListener {
-            dispose() // Close the notification window when the button is clicked
+        val titleLabel = JLabel(title)
+        titleLabel.horizontalAlignment = SwingConstants.CENTER
+        val descriptionLabel = JLabel(description)
+        descriptionLabel.horizontalAlignment = SwingConstants.CENTER
+        val acceptButton = JButton("Accept")
+        acceptButton.addActionListener {
+            dispose() // Close the notification window when the accept button is clicked
+            // Add your logic for accepting the call here
         }
-        panel.add(label, BorderLayout.CENTER)
-        panel.add(button, BorderLayout.SOUTH)
+        val declineButton = JButton("Decline")
+        declineButton.addActionListener {
+            dispose() // Close the notification window when the decline button is clicked
+            // Add your logic for declining the call here
+        }
+        val buttonPanel = JPanel(GridLayout(1, 2, 10, 0))
+        buttonPanel.add(acceptButton)
+        buttonPanel.add(declineButton)
+        panel.add(titleLabel, BorderLayout.NORTH)
+        panel.add(descriptionLabel, BorderLayout.CENTER)
+        panel.add(buttonPanel, BorderLayout.SOUTH)
         contentPane.add(panel)
 
         // Center the window on the screen
@@ -345,7 +359,8 @@ class NotificationWindow : JFrame() {
                 }
 
                 // Instantiate and display the NotificationWindow
-                val notificationWindow = NotificationWindow()
+                val notificationWindow =
+                    NotificationWindow("Calling from John Doe", "Do you want to answer the call?")
                 notificationWindow.isVisible = true
             }
         }
