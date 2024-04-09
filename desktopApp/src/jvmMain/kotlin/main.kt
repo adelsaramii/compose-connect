@@ -22,12 +22,10 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import navigation.SharedNavigatedApp
 import java.awt.AWTException
-import java.awt.EventQueue
-import java.awt.Image
+import java.awt.BorderLayout
 import java.awt.MenuItem
 import java.awt.PopupMenu
 import java.awt.SystemTray
-import java.awt.Toolkit
 import java.awt.TrayIcon
 import java.awt.event.ActionEvent
 import java.awt.event.ActionListener
@@ -37,6 +35,12 @@ import java.io.IOException
 import java.io.InputStream
 import java.net.URI
 import javax.swing.ImageIcon
+import javax.swing.JButton
+import javax.swing.JFrame
+import javax.swing.JLabel
+import javax.swing.JPanel
+import javax.swing.SwingConstants
+import javax.swing.SwingUtilities
 import kotlin.system.exitProcess
 
 fun main() {
@@ -50,10 +54,16 @@ fun main() {
         ) {
             SetAppIcon()
             SharedNavigatedApp()
-            showNotification3 {
+/*            showNotification3 {
                 createTrayIcon {}
                 state.placement = WindowPlacement.Maximized
-            }
+            }*/
+            val notificationWindow = NotificationWindow()
+
+            // Display the notification window
+
+            // Display the notification window
+            notificationWindow.isVisible = true
         }
     }
 }
@@ -275,6 +285,37 @@ private class ShowMessageListener internal constructor(
     override fun actionPerformed(e: ActionEvent) {
         trayIcon.addActionListener { println("Message Clicked") }
         trayIcon.displayMessage(title, message, messageType)
+    }
+}
+
+class NotificationWindow : JFrame() {
+    init {
+        title = "Notification"
+        setSize(300, 150)
+        defaultCloseOperation = DISPOSE_ON_CLOSE
+        val label = JLabel("This is a notification message.")
+        label.horizontalAlignment = SwingConstants.CENTER
+        val button = JButton("OK")
+        button.addActionListener {
+            dispose() // Close the notification window when the button is clicked
+        }
+        val panel = JPanel(BorderLayout())
+        panel.add(label, BorderLayout.CENTER)
+        panel.add(button, BorderLayout.SOUTH)
+        contentPane.add(panel)
+
+        // Center the window on the screen
+        setLocationRelativeTo(null)
+    }
+
+    companion object {
+        @JvmStatic
+        fun main(args: Array<String>) {
+            SwingUtilities.invokeLater {
+                val notificationWindow = NotificationWindow()
+                notificationWindow.isVisible = true
+            }
+        }
     }
 }
 
