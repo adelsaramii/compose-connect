@@ -24,6 +24,7 @@ import navigation.SharedNavigatedApp
 import java.awt.AWTException
 import java.awt.BorderLayout
 import java.awt.Color
+import java.awt.Dimension
 import java.awt.Graphics
 import java.awt.Graphics2D
 import java.awt.GridLayout
@@ -31,6 +32,7 @@ import java.awt.MenuItem
 import java.awt.PopupMenu
 import java.awt.RenderingHints
 import java.awt.SystemTray
+import java.awt.Toolkit
 import java.awt.TrayIcon
 import java.awt.event.ActionEvent
 import java.awt.event.ActionListener
@@ -61,11 +63,12 @@ fun main() {
         ) {
             SetAppIcon()
             SharedNavigatedApp()
-/*            showNotification3 {
-                createTrayIcon {}
-                state.placement = WindowPlacement.Maximized
-            }*/
-            val notificationWindow = NotificationWindow("Calling from Adel" , "do you want to answer?")
+            /*            showNotification3 {
+                            createTrayIcon {}
+                            state.placement = WindowPlacement.Maximized
+                        }*/
+            val notificationWindow =
+                NotificationWindow("Calling from Adel", "do you want to answer?")
 
             // Display the notification window
 
@@ -344,8 +347,11 @@ class NotificationWindow(title: String?, description: String?) :
         panel.add(buttonPanel, BorderLayout.SOUTH)
         contentPane.add(panel)
 
-        // Center the window on the screen
-        setLocationRelativeTo(null)
+        val screenSize: Dimension = Toolkit.getDefaultToolkit().screenSize
+        val x = screenSize.width - (width + 16)
+        val y = screenSize.height - (height + 100)
+
+        setLocation(x, y)
     }
 
     companion object {
