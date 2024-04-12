@@ -26,6 +26,7 @@ object Sound {
             )
             val clip = AudioSystem.getClip()
             clip.open(audioInputStream)
+            clip.loop(2)
             clip.start()
         } catch (ex: Exception) {
             println("Error while loading notification sound")

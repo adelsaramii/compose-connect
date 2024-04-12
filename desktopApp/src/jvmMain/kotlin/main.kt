@@ -41,6 +41,7 @@ import java.io.FileOutputStream
 import java.io.IOException
 import java.io.InputStream
 import java.net.URI
+import javax.swing.BorderFactory
 import javax.swing.ImageIcon
 import javax.swing.JButton
 import javax.swing.JFrame
@@ -56,6 +57,8 @@ fun main() {
     startKoinApp()
     application {
         val state = rememberWindowState(WindowPlacement.Floating)
+        val imageLoadingScope = rememberCoroutineScope()
+
         Window(
             title = "Chirrio Messenger",
             onCloseRequest = ::exitApplication,
@@ -63,17 +66,22 @@ fun main() {
         ) {
             SetAppIcon()
             SharedNavigatedApp()
-            /*            showNotification3 {
-                            createTrayIcon {}
+
+            showNotification3 {
+                val notificationWindow =
+                    NotificationWindow("Calling from Adel", "do you want to answer?") {
+                        if (window.isMinimized) {
+                            window.isMinimized = false
+                            imageLoadingScope.launch {
+                                state.placement = WindowPlacement.Maximized
+                            }
+                        } else {
                             state.placement = WindowPlacement.Maximized
-                        }*/
-            val notificationWindow =
-                NotificationWindow("Calling from Adel", "do you want to answer?")
+                        }
+                    }
 
-            // Display the notification window
-
-            // Display the notification window
-            notificationWindow.isVisible = true
+                notificationWindow.isVisible = true
+            }
         }
     }
 }
@@ -182,30 +190,8 @@ fun showNotification3(onClicked: () -> Unit) {
     val imageLoadingScope = rememberCoroutineScope()
 
     imageLoadingScope.launch {
-//        val trayIcon = TrayIcon(BufferedImage(1, 1, BufferedImage.TYPE_INT_RGB))
-//        SystemTray.getSystemTray().add(trayIcon)
-        delay(5000)
+        delay(3000)
         onClicked()
-
-//        try {
-////            NotificationsManager().showNotification("hello", "adel")
-//
-////            val audioInputStream = AudioSystem.getAudioInputStream(
-////                Thread.currentThread().contextClassLoader.getResource("ring.wav")
-////            )
-////            val clip = AudioSystem.getClip()
-////            clip.open(audioInputStream)
-////            clip.start()
-//        } catch (ex: Exception) {
-//            println("Error playing sound: ${ex.message}")
-//        }
-////        trayIcon.addActionListener { }
-////        trayIcon.displayMessage(
-////            "Calling From Adel",
-////            "You Want to Answer?",
-////            TrayIcon.MessageType.INFO
-////        )
-        delay(20000)
     }
 }
 
@@ -298,7 +284,7 @@ private class ShowMessageListener internal constructor(
     }
 }
 
-class NotificationWindow(title: String?, description: String?) :
+class NotificationWindow(title: String?, description: String?, onClicked: () -> Unit) :
     JFrame() {
     init {
         setTitle("Incoming Call")
@@ -306,7 +292,10 @@ class NotificationWindow(title: String?, description: String?) :
         defaultCloseOperation = DISPOSE_ON_CLOSE
         isUndecorated = true // Remove window decorations
 
-        // Create a rounded border panel
+
+        // Create a rounded border panel with padding
+
+        // Create a rounded border panel with padding
         val panel: JPanel = object : JPanel(BorderLayout()) {
             override fun paintComponent(g: Graphics) {
                 super.paintComponent(g)
@@ -324,34 +313,79 @@ class NotificationWindow(title: String?, description: String?) :
                 graphics.drawRoundRect(0, 0, width - 1, height - 1, radius, radius)
             }
         }
-        panel.background = Color(240, 240, 240) // Set background color
+        panel.background = Color(83, 185, 86) // Set background color
+
+        panel.border = BorderFactory.createEmptyBorder(10, 10, 10, 10) // Add padding
+
+
         val titleLabel = JLabel(title)
         titleLabel.horizontalAlignment = SwingConstants.CENTER
         val descriptionLabel = JLabel(description)
         descriptionLabel.horizontalAlignment = SwingConstants.CENTER
-        val acceptButton = JButton("Accept")
+
+        val acceptButton: JButton = object : JButton("Accept") {
+            override fun paintComponent(g: Graphics) {
+                if (getModel().isPressed) {
+                    g.color = Color(65, 158, 68) // Background color when pressed
+                } else {
+                    g.color = Color(83, 185, 86) // Background color
+                }
+                g.fillRoundRect(0, 0, width, height, 10, 10) // Rounded corners
+                super.paintComponent(g)
+            }
+        }
         acceptButton.addActionListener {
-            dispose() // Close the notification window when the accept button is clicked
-            // Add your logic for accepting the call here
+            onClicked()
+            dispose()
         }
-        val declineButton = JButton("Decline")
+        acceptButton.isFocusPainted = false // Remove focus border
+
+        acceptButton.background = Color(83, 185, 86)
+//        acceptButton.foreground = Color.WHITE // Text color
+
+        acceptButton.preferredSize = Dimension(100, 40) // Button size
+
+
+        val declineButton: JButton = object : JButton("Decline") {
+            override fun paintComponent(g: Graphics) {
+                if (getModel().isPressed) {
+                    g.color = Color(214, 69, 65) // Background color when pressed
+                } else {
+                    g.color = Color(232, 74, 71) // Background color
+                }
+                g.fillRoundRect(0, 0, width, height, 10, 10) // Rounded corners
+                super.paintComponent(g)
+            }
+        }
+        declineButton.isFocusPainted = false // Remove focus border
+        declineButton.background = Color(232, 74, 71)
+//        declineButton.foreground = Color.WHITE // Text color
+
+        declineButton.preferredSize = Dimension(100, 40) // Button size
+
         declineButton.addActionListener {
-            dispose() // Close the notification window when the decline button is clicked
-            // Add your logic for declining the call here
+            dispose()
         }
+
         val buttonPanel = JPanel(GridLayout(1, 2, 10, 0))
+
+        buttonPanel.background = Color(83, 185, 86)
         buttonPanel.add(acceptButton)
         buttonPanel.add(declineButton)
+
         panel.add(titleLabel, BorderLayout.NORTH)
         panel.add(descriptionLabel, BorderLayout.CENTER)
         panel.add(buttonPanel, BorderLayout.SOUTH)
+
         contentPane.add(panel)
 
         val screenSize: Dimension = Toolkit.getDefaultToolkit().screenSize
         val x = screenSize.width - (width + 16)
-        val y = screenSize.height - (height + 100)
+        val y = screenSize.height - (height + 66)
 
         setLocation(x, y)
+        isAlwaysOnTop = true
+        Sound.playSound()
     }
 
     companion object {
@@ -366,7 +400,9 @@ class NotificationWindow(title: String?, description: String?) :
 
                 // Instantiate and display the NotificationWindow
                 val notificationWindow =
-                    NotificationWindow("Calling from John Doe", "Do you want to answer the call?")
+                    NotificationWindow("Calling from John Doe", "Do you want to answer the call?") {
+
+                    }
                 notificationWindow.isVisible = true
             }
         }
