@@ -1,17 +1,22 @@
 package com.chirrio
 
+import android.content.Intent
 import android.os.Bundle
-import androidx.activity.compose.setContent
 import androidx.appcompat.app.AppCompatActivity
-import navigation.NavigatedApp
+
 
 class MainActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        setContent {
-            NavigatedApp()
-        }
+//        setContent {
+//            NavigatedApp()
+//        }
+
+        val serviceIntent = Intent(this, CallService::class.java)
+        startService(serviceIntent)
+
+        serviceIntent
     }
 }

@@ -2,6 +2,7 @@ plugins {
     kotlin(Plugins.kmp) version Versions.kotlin
     id(Plugins.android_application) version Versions.agp
     id(Plugins.compose) version Versions.compose
+//    alias(libs.plugins.android.kotlin)
 }
 
 kotlin {
@@ -41,4 +42,10 @@ android {
     packaging {
         resources.excludes.add("META-INF/versions/**")
     }
+}
+dependencies {
+    implementation(libs.appcompat)
+    implementation(libs.material)
+    implementation(libs.activity)
+    implementation(libs.constraintlayout)
 }

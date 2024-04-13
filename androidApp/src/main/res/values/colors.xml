@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- White color -->
+    <color name="white">#FFFFFF</color>
+
+    <!-- Red color -->
+    <color name="red">#FF0000</color>
+
+    <!-- Teal color -->
+    <color name="teal">#008080</color>
+</resources>
