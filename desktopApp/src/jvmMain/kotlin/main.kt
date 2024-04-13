@@ -9,12 +9,9 @@ import androidx.compose.ui.res.loadImageBitmap
 import androidx.compose.ui.res.useResource
 import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.window.FrameWindowScope
-import androidx.compose.ui.window.Notification
 import androidx.compose.ui.window.Window
 import androidx.compose.ui.window.WindowPlacement
 import androidx.compose.ui.window.application
-import androidx.compose.ui.window.rememberNotification
-import androidx.compose.ui.window.rememberTrayState
 import androidx.compose.ui.window.rememberWindowState
 import com.joelkanyi.focusbloom.utils.Sound
 import di.startKoinApp
@@ -36,11 +33,6 @@ import java.awt.Toolkit
 import java.awt.TrayIcon
 import java.awt.event.ActionEvent
 import java.awt.event.ActionListener
-import java.io.File
-import java.io.FileOutputStream
-import java.io.IOException
-import java.io.InputStream
-import java.net.URI
 import javax.swing.BorderFactory
 import javax.swing.ImageIcon
 import javax.swing.JButton
@@ -67,7 +59,7 @@ fun main() {
             SetAppIcon()
             SharedNavigatedApp()
 
-            showNotification3 {
+            delay {
                 val notificationWindow =
                     NotificationWindow("Calling from Adel", "do you want to answer?") {
                         if (window.isMinimized) {
@@ -86,126 +78,13 @@ fun main() {
     }
 }
 
-fun loadFileFromInputStream(inputStream: InputStream): File = copyInputStreamToFile(inputStream)
-
-
-fun copyInputStreamToFile(input: InputStream): File {
-    try {
-        val file = File("")
-        FileOutputStream(file).use { output -> input.transferTo(output) }
-        return file
-    } catch (ioException: IOException) {
-        ioException.printStackTrace()
-    }
-    return File("")
-}
-
-fun inputStreamToUri(inputStream: InputStream): URI? {
-    return try {
-        val tempFile = createTempFile()
-        tempFile.deleteOnExit()
-        tempFile.outputStream().use { outputStream ->
-            inputStream.copyTo(outputStream)
-        }
-        URI.create(tempFile.toURI().toString())
-    } catch (e: Exception) {
-        e.printStackTrace()
-        null
-    } finally {
-        inputStream.close()
-    }
-}
-
-fun showNotification(title: String, message: String, onClicked: () -> Unit) {
-    if (SystemTray.isSupported()) {
-        val tray = SystemTray.getSystemTray()
-        val image = ImageIcon("jetchat_icon.png").image
-        val trayIcon = TrayIcon(image, "Tray Icon")
-        trayIcon.toolTip = "Your Application"
-
-        val popup = PopupMenu()
-
-        // Add a menu item
-        val menuItem = MenuItem("accept")
-        menuItem.addActionListener {
-            onClicked()
-        }
-
-        popup.add(menuItem)
-
-        trayIcon.popupMenu = popup
-
-        tray.add(trayIcon)
-        trayIcon.displayMessage(title, message, TrayIcon.MessageType.INFO)
-
-    }
-}
-
-fun showNotification2(title: String, message: String, onClicked: () -> Unit) {
-    if (SystemTray.isSupported()) {
-        val popup = PopupMenu()
-
-        val image = ImageIcon("jetchat_icon.png").image
-        val trayIcon = TrayIcon(image, "Tray Icon")
-
-        val tray = SystemTray.getSystemTray()
-
-        // Add a menu item
-        val menuItem1 = MenuItem("Accept")
-        val menuItem2 = MenuItem("Reject")
-
-        popup.add(menuItem1)
-        popup.addSeparator()
-        popup.add(menuItem2)
-
-        trayIcon.popupMenu = popup
-
-        menuItem1.addActionListener {
-            onClicked()
-        }
-        menuItem2.addActionListener {
-            onClicked()
-        }
-        trayIcon.addActionListener {
-            onClicked()
-        }
-
-        trayIcon.addActionListener {
-            onClicked()
-        }
-        trayIcon.displayMessage(
-            "Calling From Adel",
-            "You Want to Answer?",
-            TrayIcon.MessageType.NONE
-        )
-        trayIcon.addActionListener {
-            onClicked()
-        }
-        tray.add(trayIcon)
-    }
-}
-
 @Composable
-fun showNotification3(onClicked: () -> Unit) {
+fun delay(onClicked: () -> Unit) {
     val imageLoadingScope = rememberCoroutineScope()
 
     imageLoadingScope.launch {
         delay(3000)
         onClicked()
-    }
-}
-
-@Composable
-fun Notification() {
-    val imageLoadingScope = rememberCoroutineScope()
-
-    val trayState = rememberTrayState()
-    val notification =
-        rememberNotification("Notification", "Message from MyApp!", Notification.Type.Info)
-
-    imageLoadingScope.launch {
-        delay((1000..3000).random().toLong())
-        trayState.sendNotification(notification)
     }
 }
 
@@ -230,13 +109,6 @@ private fun createTrayIcon(onClicked: () -> Unit) {
         })
     val exitItem = MenuItem("close")
 
-//    openItem.addActionListener {
-//        trayIcon.displayMessage(
-//            "Calling From Adel",
-//            "You Want to Answer?",
-//            TrayIcon.MessageType.INFO
-//        )
-//    }
     exitItem.addActionListener {
         tray.remove(trayIcon)
         exitProcess(0)
